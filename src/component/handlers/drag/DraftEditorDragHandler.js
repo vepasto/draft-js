@@ -31,6 +31,7 @@ const nullthrows = require('nullthrows');
 function getSelectionForEvent(
   event: Object,
   editorState: EditorState,
+  editorKey: string,
 ): ?SelectionState {
   let node: ?Node = null;
   let offset: ?number = null;
@@ -51,7 +52,7 @@ function getSelectionForEvent(
 
   node = nullthrows(node);
   offset = nullthrows(offset);
-  const offsetKey = nullthrows(findAncestorOffsetKey(node));
+  const offsetKey = nullthrows(findAncestorOffsetKey(node, editorKey));
 
   return getUpdatedSelectionState(
     editorState,
@@ -74,13 +75,14 @@ const DraftEditorDragHandler = {
   /**
    * Handle data being dropped.
    */
-  onDrop: function(editor: DraftEditor, e: Object): void {
+  onDrop: function(editor: DraftEditor, e: Object, editorKey: string): void {
     const data = new DataTransfer(e.nativeEvent.dataTransfer);
 
     const editorState: EditorState = editor._latestEditorState;
     const dropSelection: ?SelectionState = getSelectionForEvent(
       e.nativeEvent,
       editorState,
+      editorKey,
     );
 
     e.preventDefault();

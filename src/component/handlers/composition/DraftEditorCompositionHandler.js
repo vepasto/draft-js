@@ -49,7 +49,10 @@ let domObserver = null;
 
 function startDOMObserver(editor: DraftEditor) {
   if (!domObserver) {
-    domObserver = new DOMObserver(getContentEditableContainer(editor));
+    domObserver = new DOMObserver(
+      getContentEditableContainer(editor),
+      editor.getEditorKey(),
+    );
     domObserver.start();
   }
 }
@@ -220,6 +223,7 @@ const DraftEditorCompositionHandler = {
     const documentSelection = getDraftEditorSelection(
       editorState,
       getContentEditableContainer(editor),
+      editor.getEditorKey(),
     );
     const compositionEndSelectionState = documentSelection.selectionState;
 

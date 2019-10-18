@@ -39,12 +39,14 @@ const USE_CHAR_DATA = UserAgent.isBrowser('IE <= 11');
 class DOMObserver {
   observer: ?MutationObserver;
   container: HTMLElement;
+  editorKey: string;
   mutations: Map<string, string>;
   onCharData: ?({target: EventTarget, type: string}) => void;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, editorKey: string) {
     this.container = container;
     this.mutations = Map();
+    this.editorKey = editorKey;
     if (window.MutationObserver && !USE_CHAR_DATA) {
       this.observer = new window.MutationObserver(mutations =>
         this.registerMutations(mutations),
@@ -127,7 +129,9 @@ class DOMObserver {
   registerMutation(mutation: MutationRecordT): void {
     const textContent = this.getMutationTextContent(mutation);
     if (textContent != null) {
-      const offsetKey = nullthrows(findAncestorOffsetKey(mutation.target));
+      const offsetKey = nullthrows(
+        findAncestorOffsetKey(mutation.target, this.editorKey),
+      );
       this.mutations = this.mutations.set(offsetKey, textContent);
     }
   }

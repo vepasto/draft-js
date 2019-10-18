@@ -20,6 +20,7 @@ const removeTextWithStrategy = require('removeTextWithStrategy');
 
 function keyCommandBackspaceToStartOfLine(
   editorState: EditorState,
+  editorKey: string,
 ): EditorState {
   const afterRemoval = removeTextWithStrategy(
     editorState,
@@ -40,6 +41,7 @@ function keyCommandBackspaceToStartOfLine(
         range.endOffset,
         range.startContainer,
         range.startOffset,
+        editorKey,
       ).selectionState;
     },
     'backward',

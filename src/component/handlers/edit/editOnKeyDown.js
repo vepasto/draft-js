@@ -42,6 +42,7 @@ const isChrome = UserAgent.isBrowser('Chrome');
 function onKeyCommand(
   command: DraftEditorCommand | string,
   editorState: EditorState,
+  editorKey: string,
 ): EditorState {
   switch (command) {
     case 'redo':
@@ -55,7 +56,7 @@ function onKeyCommand(
     case 'backspace-word':
       return keyCommandBackspaceWord(editorState);
     case 'backspace-to-start-of-line':
-      return keyCommandBackspaceToStartOfLine(editorState);
+      return keyCommandBackspaceToStartOfLine(editorState, editorKey);
     case 'split-block':
       return keyCommandInsertNewline(editorState);
     case 'transpose-characters':
@@ -84,6 +85,7 @@ function onKeyCommand(
  */
 function editOnKeyDown(editor: DraftEditor, e: SyntheticKeyboardEvent<>): void {
   const keyCode = e.which;
+  const editorKey = editor.getEditorKey();
   const editorState = editor._latestEditorState;
   function callDeprecatedHandler(
     handlerName:
@@ -193,7 +195,7 @@ function editOnKeyDown(editor: DraftEditor, e: SyntheticKeyboardEvent<>): void {
     return;
   }
 
-  const newState = onKeyCommand(command, editorState);
+  const newState = onKeyCommand(command, editorState, editorKey);
   if (newState !== editorState) {
     editor.update(newState);
   }

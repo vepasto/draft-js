@@ -95,9 +95,11 @@ beforeEach(() => {
     _latestEditorState: EditorState.createEmpty(),
     _onCompositionStart: compositionHandler.onCompositionStart,
     _onKeyDown: jest.fn(),
+    _editorKey: 'test-key',
     setMode: jest.fn(),
     restoreEditorDOM: jest.fn(),
     exitCurrentMode: jest.fn(),
+    getEditorKey: jest.fn(() => editor._editorKey),
     update: jest.fn(state => (editor._latestEditorState = state)),
   };
 });

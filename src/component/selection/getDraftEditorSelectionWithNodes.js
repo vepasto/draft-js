@@ -36,6 +36,7 @@ function getDraftEditorSelectionWithNodes(
   anchorOffset: number,
   focusNode: Node,
   focusOffset: number,
+  editorKey: string,
 ): DOMDerivedSelection {
   const anchorIsTextNode = anchorNode.nodeType === Node.TEXT_NODE;
   const focusIsTextNode = focusNode.nodeType === Node.TEXT_NODE;
@@ -47,9 +48,9 @@ function getDraftEditorSelectionWithNodes(
     return {
       selectionState: getUpdatedSelectionState(
         editorState,
-        nullthrows(findAncestorOffsetKey(anchorNode)),
+        nullthrows(findAncestorOffsetKey(anchorNode, editorKey)),
         anchorOffset,
-        nullthrows(findAncestorOffsetKey(focusNode)),
+        nullthrows(findAncestorOffsetKey(focusNode, editorKey)),
         focusOffset,
       ),
       needsRecovery: false,
@@ -80,19 +81,39 @@ function getDraftEditorSelectionWithNodes(
 
   if (anchorIsTextNode) {
     anchorPoint = {
-      key: nullthrows(findAncestorOffsetKey(anchorNode)),
+      key: nullthrows(findAncestorOffsetKey(anchorNode, editorKey)),
       offset: anchorOffset,
     };
-    focusPoint = getPointForNonTextNode(root, focusNode, focusOffset);
+    focusPoint = getPointForNonTextNode(
+      root,
+      focusNode,
+      focusOffset,
+      editorKey,
+    );
   } else if (focusIsTextNode) {
     focusPoint = {
-      key: nullthrows(findAncestorOffsetKey(focusNode)),
+      key: nullthrows(findAncestorOffsetKey(focusNode, editorKey)),
       offset: focusOffset,
     };
-    anchorPoint = getPointForNonTextNode(root, anchorNode, anchorOffset);
+    anchorPoint = getPointForNonTextNode(
+      root,
+      anchorNode,
+      anchorOffset,
+      editorKey,
+    );
   } else {
-    anchorPoint = getPointForNonTextNode(root, anchorNode, anchorOffset);
-    focusPoint = getPointForNonTextNode(root, focusNode, focusOffset);
+    anchorPoint = getPointForNonTextNode(
+      root,
+      anchorNode,
+      anchorOffset,
+      editorKey,
+    );
+    focusPoint = getPointForNonTextNode(
+      root,
+      focusNode,
+      focusOffset,
+      editorKey,
+    );
 
     // If the selection is collapsed on an empty block, don't force recovery.
     // This way, on arrow key selection changes, the browser can move the
@@ -119,13 +140,13 @@ function getDraftEditorSelectionWithNodes(
 /**
  * Identify the first leaf descendant for the given node.
  */
-function getFirstLeaf(node: any): Node {
+function getFirstLeaf(node: any, editorKey: string): Node {
   while (
     node.firstChild &&
     // data-blocks has no offset
     ((node.firstChild instanceof Element &&
       node.firstChild.getAttribute('data-blocks') === 'true') ||
-      getSelectionOffsetKeyForNode(node.firstChild))
+      getSelectionOffsetKeyForNode(node.firstChild, editorKey))
   ) {
     node = node.firstChild;
   }
@@ -135,13 +156,13 @@ function getFirstLeaf(node: any): Node {
 /**
  * Identify the last leaf descendant for the given node.
  */
-function getLastLeaf(node: any): Node {
+function getLastLeaf(node: any, editorKey: string): Node {
   while (
     node.lastChild &&
     // data-blocks has no offset
     ((node.lastChild instanceof Element &&
       node.lastChild.getAttribute('data-blocks') === 'true') ||
-      getSelectionOffsetKeyForNode(node.lastChild))
+      getSelectionOffsetKeyForNode(node.lastChild, editorKey))
   ) {
     node = node.lastChild;
   }
@@ -152,9 +173,10 @@ function getPointForNonTextNode(
   editorRoot: ?HTMLElement,
   startNode: Node,
   childOffset: number,
+  editorKey: string,
 ): SelectionPoint {
   let node = startNode;
-  const offsetKey: ?string = findAncestorOffsetKey(node);
+  const offsetKey: ?string = findAncestorOffsetKey(node, editorKey);
 
   invariant(
     offsetKey != null ||
@@ -185,7 +207,7 @@ function getPointForNonTextNode(
       key = offsetKey;
     } else {
       const firstLeaf = getFirstLeaf(node);
-      key = nullthrows(getSelectionOffsetKeyForNode(firstLeaf));
+      key = nullthrows(getSelectionOffsetKeyForNode(firstLeaf, editorKey));
     }
     return {key, offset: 0};
   }
@@ -194,7 +216,7 @@ function getPointForNonTextNode(
   let leafKey: ?string = null;
   let textLength: ?number = null;
 
-  if (!getSelectionOffsetKeyForNode(nodeBeforeCursor)) {
+  if (!getSelectionOffsetKeyForNode(nodeBeforeCursor, editorKey)) {
     // Our target node may be a leaf or a text node, in which case we're
     // already where we want to be and can just use the child's length as
     // our offset.
@@ -204,7 +226,7 @@ function getPointForNonTextNode(
     // Otherwise, we'll look at the child to the left of the cursor and find
     // the last leaf node in its subtree.
     const lastLeaf = getLastLeaf(nodeBeforeCursor);
-    leafKey = nullthrows(getSelectionOffsetKeyForNode(lastLeaf));
+    leafKey = nullthrows(getSelectionOffsetKeyForNode(lastLeaf, editorKey));
     textLength = getTextContentLength(lastLeaf);
   }
 
